@@ -1,0 +1,21 @@
+{
+  "name": "psql-business-manager",
+  "version": "1.0.0",
+  "description": "Cli application to manage a company's information in a database",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "keywords": [
+    "pg",
+    "psql",
+    "node",
+    "inquirer"
+  ],
+  "author": "Fabricio Guacuto",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^8.2.4",
+    "pg": "^8.11.5"
+  }
+}
