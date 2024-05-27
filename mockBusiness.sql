@@ -59,3 +59,4 @@ VALUES
 ('Maria','Suarez',1,6),
 ('Euclides','Monroe',1,8),
 ('Jesus','Salazar',1,9);
+

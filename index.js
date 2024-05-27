@@ -4,15 +4,29 @@ const {Pool} = require('pg');
 const pool = new Pool(
     {
         user: 'account',
-        password:'',
+        password:'superSecurePasswordNoOneWillEverSee',
         host: 'localhost',
-        database: ''
+        database: 'negocio_db'
     }
 )
 
 pool.connect()
 .then(() => {
-    console.log('Connected to the company database.');
+    console.log(`
+    ____                _                          
+   |  _ \\              (_)                         
+   | |_) |_   _ ___ ___ _ _ __   ___ ___ ___       
+   |  _ <| | | / __/ __| | '_ \\ / _ \\ __/ __|      
+   | |_) | |_| \\__ \\__ \\ | | | |  __/\\__ \\__ \\      
+   |____/ \\__,_|___/___|_|_| |_|\\___|___|___/      
+   |  \\/  |                                        
+   | \\  / | __ _ _ __   __ _  __ _  __ _  ___ _ __ 
+   | |\\/| |/ _\` | '_ \\ / _\` |/ _\` |/ _\` |/ _ \\ '__|
+   | |  | | (_| | | | | (_| | (_| | (_| |  __| |   
+   |_|  |_|\\__,_|_| |_|\\__,_|\\__,_|\\__, |\\___|_|   
+                              __/ | __/ |          
+                             |___/ |___/           
+  `);
     prompter();
 })
 .catch((err) => {
@@ -34,7 +48,11 @@ const prompter = async () =>{
 
 const employeeGetter = async () => {
     try{
-        const employees = await pool.query('SELECT * FROM employee');
+        const employees = await pool.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, m.first_name as manager
+        FROM employee e
+        JOIN role r ON r.id = e.role_id
+        JOIN department d ON r.department_id = d.id
+        LEFT JOIN employee m ON e.manager_id = m.id;`);
         return employees.rows;
     }catch(err) {
         console.error(`An error has occured in the query ${err}`);
@@ -44,7 +62,9 @@ const employeeGetter = async () => {
 
 const roleGetter = async () => {
     try{
-        const roles = await pool.query('SELECT * FROM role');
+        const roles = await pool.query(`SELECT r.id, r.title,d.name as department ,r.salary
+        FROM role r
+        LEFT JOIN department d ON d.id = r.department_id; `);
         return roles.rows;
     }catch(err) {
         console.error(`An error has occured in the query ${err}`);
@@ -95,7 +115,17 @@ const actionTaker = async (action) => {
             console.log('9');
             break;
         case 'Exit':
-            console.log('10 BYE BYE');
+            console.log(`
+            ______      _ _   _             
+           |  ____|    (_) | (_)            
+           | |__  __  ___| |_ _ _ __   __ _ 
+           |  __| \\ \\/ / | __| | '_ \\ / _\` |
+           | |____ >  <| | |_| | | | | (_| |
+           |______/_/\\_\\_|\\__|_|_| |_|\\__, |
+                                       __/ |
+                                      |___/
+          `
+            );
             process.exit(0);
     }
     prompter();
