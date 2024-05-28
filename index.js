@@ -40,10 +40,60 @@ choices:['View All Employees || by manager ||by department', 'Add Employee', 'Up
 message:"What would you like to do?"
 }];
 
+const newDept = [{
+    type:"input",
+    name:"dept",
+    message:"What is the name of the new department?"
+}];
+
+const delDept = [{
+    type:"input",
+    name:"dept",
+    message:"What is the name of the department to delete?"
+}];
+
+const roleOptions = async () => {
+    const response = await pool.query('SELECT name FROM department');
+    const rows = response.rows;
+    const depts = rows.map((row) => row.name);
+    const question = [{
+        type:"input",
+        name:"title",
+        message:"What is the title of the new role"
+    },{
+        type:"input",
+        name:"salary",
+        message:"What is the salary of this role"
+    },{
+        type:"list",
+        name:"dept",
+        choices:depts,
+        message:"Wich department does this role belong to?"
+    }]
+    console.log(question);
+    return question;
+}
 
 const prompter = async () =>{
     const answer = await inquirer.prompt(question);
     actionTaker(answer.action);
+}
+
+const newDeptHandler = async () => {
+    const deptName = await inquirer.prompt(newDept);
+    await addDepartments(deptName.dept);
+}
+
+const delDeptHandler = async () => {
+    const targetdept = await inquirer.prompt(delDept);
+    await delDepartments(targetdept.dept);
+}
+
+const newRoleHandler = async () => {
+    const {title, dept, salary} = await inquirer.prompt(roleOptions());
+    const deptRows = await pool.query('SELECT id FROM department WHERE name = $1', [dept]);
+    const deptId = deptRows.rows[0].id;
+    await addRole(title, deptId, salary);
 }
 
 const employeeGetter = async () => {
@@ -82,6 +132,35 @@ const  departmentGetter = async () => {
     }
 }
 
+const addDepartments = async (dept) => {
+    try {
+        await pool.query(`INSERT INTO department (name) VALUES ($1)`, [dept]);
+        console.log(`Department ${dept} created successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
+const delDepartments = async (dept) => {
+    try {
+        await pool.query(`DELETE FROM department  WHERE name = ($1)`, [dept]);
+        console.log(`Department ${dept} deleted successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
+const addRole = async (title, dept, salary) => {
+    try {
+        await pool.query(`INSERT INTO role (title, department_id, salary) VALUES ($1, $2, $3)`, [title,dept,salary]);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
 const actionTaker = async (action) => {
     switch(action){
         case 'View All Employees || by manager ||by department':
@@ -100,6 +179,7 @@ const actionTaker = async (action) => {
             break;
         case 'Add Role':
             console.log('5');
+            await newRoleHandler();
             break;
         case 'Delete Role':
             console.log('6');
@@ -109,10 +189,13 @@ const actionTaker = async (action) => {
             console.table(departments);
             break;
         case 'Add Department':
-            console.log('8');
+            await newDeptHandler();
             break;
         case 'department total budget':
             console.log('9');
+            break;
+        case 'Delete Department':
+            await delDeptHandler();
             break;
         case 'Exit':
             console.log(`
@@ -128,6 +211,6 @@ const actionTaker = async (action) => {
             );
             process.exit(0);
     }
-    prompter();
+   prompter();
 
 }
