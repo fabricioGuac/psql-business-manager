@@ -69,10 +69,16 @@ const roleOptions = async () => {
         name:"dept",
         choices:depts,
         message:"Wich department does this role belong to?"
-    }]
+    }];
     console.log(question);
     return question;
 }
+
+const delRoleQuest = [{
+    type:"input",
+    name:"role",
+    message:"What is the title of the role to delete?"
+}];
 
 const prompter = async () =>{
     const answer = await inquirer.prompt(question);
@@ -85,15 +91,20 @@ const newDeptHandler = async () => {
 }
 
 const delDeptHandler = async () => {
-    const targetdept = await inquirer.prompt(delDept);
-    await delDepartments(targetdept.dept);
+    const targetDept = await inquirer.prompt(delDept);
+    await delDepartments(targetDept.dept);
 }
 
 const newRoleHandler = async () => {
-    const {title, dept, salary} = await inquirer.prompt(roleOptions());
+    const {title, dept, salary} = await inquirer.prompt( await roleOptions());
     const deptRows = await pool.query('SELECT id FROM department WHERE name = $1', [dept]);
     const deptId = deptRows.rows[0].id;
     await addRole(title, deptId, salary);
+}
+
+const delRoleHandler = async () => {
+    const targetRole = await inquirer.prompt(delRoleQuest);
+    await delRole(targetRole.role);
 }
 
 const employeeGetter = async () => {
@@ -161,6 +172,16 @@ const addRole = async (title, dept, salary) => {
     }
 }
 
+const delRole = async (role) => {
+    try {
+        await pool.query(`DELETE FROM role  WHERE title = ($1)`, [role]);
+        console.log(`Role ${role} deleted successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
 const actionTaker = async (action) => {
     switch(action){
         case 'View All Employees || by manager ||by department':
@@ -183,6 +204,7 @@ const actionTaker = async (action) => {
             break;
         case 'Delete Role':
             console.log('6');
+            await delRoleHandler();
             break;
         case 'View All Departments':
             const departments = await departmentGetter();
@@ -212,5 +234,4 @@ const actionTaker = async (action) => {
             process.exit(0);
     }
    prompter();
-
 }
