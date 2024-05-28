@@ -36,7 +36,7 @@ pool.connect()
 
 const  question = [{type:"list",
 name:"action",
-choices:['View All Employees || by manager ||by department', 'Add Employee', 'Update Employee Role','Delete Employee', 'View All Roles', 'Add Role','Delete Role', 'View All Departments','Add Department','Delete Department','department total budget', 'Exit' ],
+choices:['View All Employees', 'View All Employees by manager','View All Employees by department', 'Add Employee', 'Update Employee Role','Update Employee Manager','Delete Employee', 'View All Roles', 'Add Role','Delete Role', 'View All Departments','Add Department','Delete Department','department total budget', 'Exit' ],
 message:"What would you like to do?"
 }];
 
@@ -63,7 +63,14 @@ const employeeGetter = async () => {
         return [];
     }
 }
-
+const empsByDeptGetter = async () => {
+    try{
+        
+    }catch(err) {
+        console.error(`An error has occured in the query ${err}`);
+        return [];
+    }
+}
 
 const roleGetter = async () => {
     try{
@@ -204,7 +211,6 @@ const delRol = async () => {
     } catch (err) {
         console.error(`Error deleting role ${err}`);
     }
-  
 }
 
 
@@ -257,14 +263,51 @@ const upEmp = async () => {
     } catch (err) {
         console.error(`An error has occurred ${err}`);
     }
+}
+
+const upEmpMan = async () => {
+    try{
+    const emp = await pool.query(`SELECT first_name,last_name, id FROM employee`);
+    
+    const empList = emp.rows.map((emp) => ({name: `${emp.first_name} ${emp.last_name}`, value:emp.id}));
+    	
+
+    const {emp_id} = await inquirer.prompt([{
+            type:"list",
+            name:'emp_id',
+            choices:empList,
+            message:`Who is the employee to modify?`
+        }]);
+
+	const manOptions = empList.filter((man) => man.value !== emp_id);
+	manOptions.push({name: 'None', value: null});
+	 const{man_id} = await inquirer.prompt([{
+            type:"list",
+            name:'man_id',
+            choices:manOptions,
+            message:`Who is the new employee's manager?`
+        }]);
+     await pool.query(`UPDATE employee SET manager_id = $1 WHERE id = $2`,[man_id, emp_id]);
+    console.log(`Employee's role modified successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
     }
+}
 
 
 const actionTaker = async (action) => {
     switch(action){
-        case 'View All Employees || by manager ||by department':
+        case 'View All Employees':
             const employees = await employeeGetter();
             console.table(employees);
+            break;
+        // case 'View All Employees by manager':
+        //     const empsByMan = await ();
+        //     console.table(empsByMan);
+        //     break;
+        case 'View All Employees by department':
+            const empsByDept = await (empsByDeptGetter());
+            console.table(empsByDept);
             break;
         case 'Add Employee':
             await addEmp();
@@ -272,6 +315,10 @@ const actionTaker = async (action) => {
             break;
         case 'Update Employee Role':
             await upEmp();
+            console.log('3');
+            break;
+        case 'Update Employee Manager':
+            await upEmpMan();
             console.log('3');
             break;
         case 'Delete Employee':
