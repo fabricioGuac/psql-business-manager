@@ -36,7 +36,7 @@ pool.connect()
 
 const  question = [{type:"list",
 name:"action",
-choices:['View All Employees || by manager ||by department', 'Add Employee', 'Update Employee (Role | managers | delete)', 'View All Roles', 'Add Role','Delete Role', 'View All Departments','Add Department','Delete Department','department total budget', 'Exit' ],
+choices:['View All Employees || by manager ||by department', 'Add Employee', 'Update Employee (Role | managers)','Delete Employee', 'View All Roles', 'Add Role','Delete Role', 'View All Departments','Add Department','Delete Department','department total budget', 'Exit' ],
 message:"What would you like to do?"
 }];
 
@@ -80,6 +80,74 @@ const delRoleQuest = [{
     message:"What is the title of the role to delete?"
 }];
 
+const newEmpInfo = async () => {
+    const resNam = await pool.query('SELECT first_name, last_name FROM employee');
+    const rowNam = resNam.rows;
+    const posbMg = rowNam.map((row) => `${row.first_name} ${row.last_name}`);
+    const resRol = await pool.query('SELECT title FROM role');
+    const rowRol = resRol.rows;
+    const posbRol = rowRol.map((row) => row.title);
+    posbMg.push('None');
+    const question =[{
+        type:'input',
+        name:'first',
+        message:`What is the new employee's first name?`
+    },{
+        type:'input',
+        name:'last',
+        message:`What is the new employee's last name?`
+    },{
+        type:"list",
+        name:'role',
+        choices:posbRol,
+        message:`What is the employee's role?`
+    },{
+        type:"list",
+        name:'manager',
+        choices:posbMg,
+        message:`Who is the employee's manager?`
+    }];
+    return question;
+}
+
+const EmpUp = async () =>{
+    const resNam = await pool.query('SELECT first_name, last_name FROM employee');
+    const rowNam = resNam.rows;
+    const posbMg = rowNam.map((row) => `${row.first_name} ${row.last_name}`);
+    const resRol = await pool.query('SELECT title FROM role');
+    const rowRol = resRol.rows;
+    const posbRol = rowRol.map((row) => row.title);
+    posbMg.push('None');
+    const question =[{
+        type:"list",
+        name:'employee',
+        choices:posbMg,
+        message:`Which employee's role do you want to update?`
+    },{
+        type:"list",
+        name:'role',
+        choices:posbRol,
+        message:`What is the new employee's role?`
+    }];
+    return question;
+}
+
+const delEmp = async () => {
+const employee = await pool.query(`SELECT id, first_name, last_name FROM employee`);
+
+const empInfo = employee.rows.map((emp) => ({name: `${emp.first_name} ${emp.last_name}`, value:emp.id}));
+
+const {empId} = await inquirer.prompt([{
+    type:'list',
+    name:"empId",
+    choices:empInfo,
+}]);
+await pool.query(`DELETE FROM employee WHERE id = $1`,[empId]);
+
+console.log(`Employee deleted successfully`);
+}
+
+
 const prompter = async () =>{
     const answer = await inquirer.prompt(question);
     actionTaker(answer.action);
@@ -107,9 +175,33 @@ const delRoleHandler = async () => {
     await delRole(targetRole.role);
 }
 
+const employeeAdderHandler = async () => {
+    const {first, last, manager, role} = await inquirer.prompt(await newEmpInfo());
+    let manager_id = null;
+    if(manager !== 'None'){
+        const manSplit = manager.split(' ');
+        const managerResponse = await pool.query(`SELECT id FROM employee WHERE first_name = $1 AND last_name = $2`,[manSplit[0],manSplit[1]]);
+        manager_id = managerResponse.rows[0].id;
+        }
+    const roleResponse = await pool.query(`SELECT id FROM role WHERE title = $1`,[role]); 
+    const role_id = roleResponse.rows[0].id;
+    await employeeAdder(first,last,manager_id, role_id);
+}
+
+const employeeUpdateHandler = async () => {
+    const {employee, role} = await inquirer.prompt(await EmpUp());
+    let emp_id = null;
+        const empSplit = employee.split(' ');
+        const empResponse = await pool.query(`SELECT id FROM employee WHERE first_name = $1 AND last_name = $2`,[empSplit[0],empSplit[1]]);
+        emp_id = empResponse.rows[0].id;
+    const roleResponse = await pool.query(`SELECT id FROM role WHERE title = $1`,[role]); 
+    const role_id = roleResponse.rows[0].id;
+    await emplUpdater(emp_id, role_id);
+}
+
 const employeeGetter = async () => {
     try{
-        const employees = await pool.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, m.first_name as manager
+        const employees = await pool.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, CONCAT(m.first_name,' ',m.last_name) as manager
         FROM employee e
         JOIN role r ON r.id = e.role_id
         JOIN department d ON r.department_id = d.id
@@ -182,6 +274,27 @@ const delRole = async (role) => {
     }
 }
 
+const employeeAdder = async (first_name, last_name, manager, role) => {
+    try {
+        await pool.query(`INSERT INTO employee (first_name, last_name, manager_id, role_id) VALUES ($1, $2, $3, $4)`, [first_name,last_name,manager,role]);
+        console.log(`User ${first_name} ${last_name} has been added successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
+// empDel here
+
+const emplUpdater = async (emp_id, role_id) => {
+    try {
+        await pool.query(`UPDATE employee SET role_id = $1 WHERE id = $2`,[role_id, emp_id]);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}
+
 const actionTaker = async (action) => {
     switch(action){
         case 'View All Employees || by manager ||by department':
@@ -189,10 +302,16 @@ const actionTaker = async (action) => {
             console.table(employees);
             break;
         case 'Add Employee':
+            await employeeAdderHandler();
             console.log('2');
             break;
         case 'Update Employee (Role | managers | delete)':
+            await employeeUpdateHandler();
             console.log('3');
+            break;
+        case 'Delete Employee':
+            await delEmp()
+            console.log('3.5');
             break;
         case 'View All Roles':
             const roles = await roleGetter();

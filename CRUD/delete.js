@@ -8,3 +8,12 @@ const delDepartments = async (dept) => {
     }
 }
 
+const delRole = async (role) => {
+    try {
+        await pool.query(`DELETE FROM role  WHERE title = ($1)`, [role]);
+        console.log(`Role ${role} deleted successfully`);
+    } catch (err) {
+        console.error(`An error has occurred ${err}`);
+        return;
+    }
+}

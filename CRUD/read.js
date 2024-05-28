@@ -3,7 +3,7 @@ const pool = require('../Helpers/pool')
 
 const employeeGetter = async () => {
     try{
-        const employees = await pool.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary, m.first_name as manager
+        const employees = await pool.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name as department, r.salary,CONCAT(m.first_name, " ",m.last_name) as manager
         FROM employee e
         JOIN role r ON r.id = e.role_id
         JOIN department d ON r.department_id = d.id
