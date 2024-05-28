@@ -137,6 +137,20 @@ const  departmentGetter = async () => {
     }
 }
 
+const totalBudged = async () => {
+    try {
+        const budget = await pool.query(`SELECT d.name, COUNT(e.id) AS employee_count, SUM(r.salary) AS total_budget
+        FROM employee e
+        JOIN role r ON r.id = e.role_id
+        JOIN department d ON r.department_id = d.id
+        GROUP BY d.name;`);
+        return budget.rows;
+    } catch (err) {
+        console.error(`An error has occured in the query ${err}`);
+        return [];
+    }
+}
+
 // Create section
 const addDept = async () => {
     try{
@@ -355,30 +369,23 @@ const actionTaker = async (action) => {
             break;
         case 'Add Employee':
             await addEmp();
-            console.log('2');
             break;
         case 'Update Employee Role':
             await upEmp();
-            console.log('3');
             break;
         case 'Update Employee Manager':
             await upEmpMan();
-            console.log('3');
             break;
         case 'Delete Employee':
             await delEmp()
-            console.log('3.5');
             break;
         case 'View All Roles':
             const roles = await roleGetter();
             console.table(roles);
             break;
-        case 'Add Role':
-            console.log('5');
             await addRol();
             break;
         case 'Delete Role':
-            console.log('6');
             await delRol();
             break;
         case 'View All Departments':
@@ -389,7 +396,8 @@ const actionTaker = async (action) => {
             await addDept();
             break;
         case 'department total budget':
-            console.log('9');
+            const budget = await totalBudged();
+            console.table(budget);
             break;
         case 'Delete Department':
             await delDep();
