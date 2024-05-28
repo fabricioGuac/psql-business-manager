@@ -1,5 +1,7 @@
+-- Ensures the conection to the bussiness_db
 \c bussiness_db;
 
+-- Inserts mock data into the tables
 INSERT INTO department(name)
 VALUES('Accounting'),
 ('customer service'),

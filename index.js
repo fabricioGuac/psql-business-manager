@@ -1,10 +1,12 @@
+// Require the necessary packages and functions
 const inquirer = require('inquirer');
 const {Pool} = require('pg');
 const {read, create, del, update} = require('./CRUD');
 
-
+// Creates a new instance of pool
 const pool = new Pool(
     {
+        // Introduce the username and password for your postgres account
         user: 'account',
         password:'superSecurePasswordNoOneWillEverSee',
         host: 'localhost',
@@ -12,6 +14,7 @@ const pool = new Pool(
     }
 )
 
+// Connects to the database
 pool.connect()
 .then(() => {
     console.log(`
@@ -29,24 +32,29 @@ pool.connect()
                               __/ | __/ |          
                              |___/ |___/           
   `);
+//   Starts prompting the questions
     prompter();
 })
 .catch((err) => {
     console.error(`An error has occurred while connecting to the database: ${err}`);
+    // Exits the node.js process on failure status code
     process.exit(1);
 });
 
+// Defines the list of the possible actions that will be prompted
 const  question = [{type:"list",
 name:"action",
 choices:['View All Employees', 'View All Employees by manager','View All Employees by department', 'Add Employee', 'Update Employee Role','Update Employee Manager','Delete Employee', 'View All Roles', 'Add Role','Delete Role', 'View All Departments','Add Department','Delete Department','department total budget', 'Exit' ],
 message:"What would you like to do?"
 }];
 
+// Creates a function to prompt the possible actions
 const prompter = async () =>{
     const answer = await inquirer.prompt(question);
     actionTaker(answer.action);
 }
 
+// Switch case to handle different actions and call corresponding functions
 const actionTaker = async (action) => {
     switch(action){
         case 'View All Employees':
@@ -109,7 +117,9 @@ const actionTaker = async (action) => {
                                       |___/
           `
             );
+            // Exits the node.js process on success status code
             process.exit(0);
     }
+// Calls the prompter function to mantain a loop
    prompter();
 }

@@ -1,8 +1,11 @@
+-- Eliminates the bussiness_db database if it exists and the creates it
 DROP DATABASE IF EXISTS bussiness_db;
 CREATE DATABASE bussiness_db;
 
+-- Connects to the bussiness_db
 \c bussiness_db;
 
+-- Creates the tables for the database
 CREATE TABLE department (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) NOT NULL
@@ -30,7 +33,7 @@ CREATE TABLE employee (
     ON DELETE SET NULL
 );  
 
-
+-- Adds manager_id as a foreign key after the table is created to ensure the referenced table exists
 ALTER TABLE employee 
 ADD FOREIGN KEY (manager_id)
     REFERENCES employee(id)
