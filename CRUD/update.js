@@ -1,21 +1,14 @@
-// Requires the inquirer package
+// Requires the inquirer package and functions from listMaker
 const inquirer = require('inquirer');
+const {empLister, rolLister} = require('../helper/listMaker');
 
 // Creates a function to update the employee role
 const upEmp = async (pool) => {
     try{
-
-        // Gets the names and ids of the employees
-    const emp = await pool.query(`SELECT first_name,last_name, id FROM employee`);
-
-    // Uses map to create an array of objects with the full name of the employees and the value of their ids to prompt as the choices for the emp_id
-    const empList = emp.rows.map((emp) => ({name: `${emp.first_name} ${emp.last_name}`, value:emp.id}));
-
-        // Gets the titles and ids of the roles
-    const role = await pool.query(`SELECT title, id FROM role`);
     
-    // Uses map to create an array of objects with the title of the roles and the value of their ids to prompt as the choices for the role_id
-    const rolList = role.rows.map((role) => ({ name: role.title, value: role.id }));
+    // Calls the functions to return the array of object for the questions
+    const empList = await empLister(pool);
+    const rolList = await rolLister(pool);
     
     // Gets the information to update the employee
     const {emp_id,role_id} = await inquirer.prompt([{
@@ -39,13 +32,9 @@ const upEmp = async (pool) => {
 
 // Creates a function to update the employee's manager
 const upEmpMan = async (pool) => {
-    try{
-
-        // Gets the names and ids of the employees
-    const emp = await pool.query(`SELECT first_name,last_name, id FROM employee`);
-    
-    // Uses map to create an array of objects with the full name of the employees and the value of their ids to prompt as the choices for the emp_id
-    const empList = emp.rows.map((emp) => ({name: `${emp.first_name} ${emp.last_name}`, value:emp.id}));
+    try{   
+    // Calls the functions to return the array of object for the questions
+    const empList = await empLister(pool);
     
     // Gets the id of the employee to update
     const {emp_id} = await inquirer.prompt([{

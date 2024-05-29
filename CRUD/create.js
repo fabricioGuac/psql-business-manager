@@ -1,5 +1,6 @@
-// Requires the inquirer package
+// Requires the inquirer package and the functions from  listMaker
 const inquirer = require('inquirer');
+const {depLister, empLister,rolLister} = require('../helper/listMaker')
 
 // Creates a function to add a new department
 const addDept = async (pool) => {
@@ -24,11 +25,9 @@ const addDept = async (pool) => {
 const addRol = async (pool) => {
 
     try{
-        // Gets the names and ids of the departments
-    const department = await pool.query(`SELECT name, id FROM department`);
-
-    // Uses map to create an array of objects with the name of the departments and the value of the id to prompt as the choices for the deptId
-    const deptInfo = department.rows.map((dept) => ({name: dept.name, value:dept.id}));
+    
+    // Calls the functions to return the array of object for the questions
+    const deptInfo = await depLister(pool);
 
     // Gets the information of the role using inquirer
     const {newRol, deptId, newSal} = await inquirer.prompt([{
@@ -58,20 +57,14 @@ const addRol = async (pool) => {
 const addEmp = async (pool) => {
     try{
 
-        // Gets the names and ids of the employees
-    const mangr = await pool.query(`SELECT first_name,last_name, id FROM employee`);
-
-    // Uses map to create an array of objects with the full name of the employees and the value of their ids to prompt as the choices for the manager_id
-    const mangrList = mangr.rows.map((row) => ({name: `${row.first_name} ${row.last_name}`, value:row.id}));
+    // Calls the functions to return the array of object for the questions
+    const mangrList = await empLister(pool);
 
     // pushes None with the value of null for when employees have no manager
     mangrList.push({name: 'None', value: null});
 
-        // Gets the titles and ids of the roles
-    const role = await pool.query(`SELECT title, id FROM role`);
-
-    // Uses map to create an array of objects with the title of the roles and the value of their ids to prompt as the choices for the role_id
-    const rolList = role.rows.map((role) => ({ name: role.title, value: role.id }));
+    // Calls the functions to return the array of object for the questions
+    const rolList = await rolLister(pool);
 
     // Gets the information for the new employee
     const {first_name,last_name,manager_id,role_id} = await inquirer.prompt([{

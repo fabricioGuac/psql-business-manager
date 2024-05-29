@@ -1,15 +1,14 @@
-// Requires the inquirer package
+// Requires the inquirer package and the function from listMaker
 const inquirer = require('inquirer');
+const {depLister,rolLister,empLister} = require('../helper/listMaker');
+
 
 // Creates a fumction to delete a department
 const delDep = async (pool) => {
     try{
 
-        // Selects all the information from the department table
-    const depts = await pool.query(`SELECT * FROM department`);
-
-    // Uses map to create an array of objects with the name of the departments and the value of the id to prompt as the choices for the deptId
-    const deptInfo = depts.rows.map((dept) => ({ name: dept.name, value: dept.id }));
+        // Calls the functions to return the array of object for the questions
+        const deptInfo = await depLister(pool);
 
     // Gets the id of the target department
     const { deptId } = await inquirer.prompt([{
@@ -30,11 +29,8 @@ const delDep = async (pool) => {
 const delRol = async (pool) => {
     try {
 
-        // Gets the titles and ids of the roles
-    const role = await pool.query(`SELECT title, id FROM role`);
-    
-    // Uses map to create an array of objects with the title of the roles and the value of their ids to prompt as the choices for the role_id
-    const rolInfo = role.rows.map((role) => ({ name: role.title, value: role.id }));
+        // Calls the functions to return the array of object for the questions
+        const rolInfo = await rolLister(pool);
 
     // Gets the rol id using inquirer
     const { rolId } = await inquirer.prompt([{
@@ -55,11 +51,8 @@ const delRol = async (pool) => {
 const delEmp = async (pool) => {
     try {
 
-        // Gets the names and ids of the employees
-    const employee = await pool.query(`SELECT id, first_name, last_name FROM employee`);
-    
-    // Uses map to create an array of objects with the full name of the employees and the value of their ids to prompt as the choices for the empId
-    const empInfo = employee.rows.map((emp) => ({name: `${emp.first_name} ${emp.last_name}`, value:emp.id}));
+    // Calls the functions to return the array of object for the questions
+    const empInfo = await empLister(pool);
     
     // Gets the employee id using inquirer
     const {empId} = await inquirer.prompt([{

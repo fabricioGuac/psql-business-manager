@@ -1,5 +1,6 @@
-// Requires the inquirer package
+// Requires the inquirer package and function from listMaker
 const inquirer = require('inquirer');
+const {depLister} = require('../helper/listMaker');
 
 
 // Creates a function to get a join table with the employee's information leveraging left joins to ensure the employee is added even if the role or id are not matched
@@ -20,11 +21,9 @@ const employeeGetter = async (pool) => {
 // Creates a function to get a join table with the employee's information based on the employee's department
 const empsByDeptGetter = async (pool) => {
     try{
-        // Selects all the information from the department table
-        const depts = await pool.query(`SELECT * FROM department`);
-
-    // Uses map to create an array of objects with the name of the departments and the value of the id to prompt as the choices for the deptId
-    const deptInfo = depts.rows.map((dept) => ({ name: dept.name, value: dept.id }));
+    
+        // Calls the functions to return the array of object for the questions
+        const deptInfo = await depLister(pool);
 
     // Gets the id of the target department
     const { deptId } = await inquirer.prompt([{
