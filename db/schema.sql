@@ -18,7 +18,7 @@ CREATE TABLE role (
     department_id INT,
     FOREIGN KEY (department_id)
     REFERENCES department(id)
-    ON DELETE SET NULL
+    ON DELETE CASCADE
 );
 
 
@@ -30,7 +30,7 @@ CREATE TABLE employee (
     role_id INT,
     FOREIGN KEY (role_id)
     REFERENCES role(id)
-    ON DELETE SET NULL
+    ON DELETE CASCADE
 );  
 
 -- Adds manager_id as a foreign key after the table is created to ensure the referenced table exists
